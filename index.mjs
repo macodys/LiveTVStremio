@@ -96,9 +96,15 @@ builder.defineStreamHandler(({ id }) => {
 
 // ✅ Serve manifest.json
 app.get('/manifest.json', (req, res) => {
-    console.log('📜 Manifest requested');
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(builder.manifest));
+    try {
+        console.log('📜 Manifest requested');
+        const manifest = builder.getInterface().manifest; // ✅ THIS IS CORRECT
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(manifest));
+    } catch (err) {
+        console.error('❌ Error serving manifest.json:', err);
+        res.status(500).send(err.toString());
+    }
 });
 
 // ✅ Serve catalog & stream routes

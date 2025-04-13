@@ -61,8 +61,16 @@ const builder = new addonBuilder({
         name: "FAWA Live TV",
         extra: []
     }],
-    resources: ["catalog", "stream"]
+    resources: [
+        {
+            name: "FAWA Live TV",
+            types: ["tv"],
+            idPrefixes: ["fawa_live_catalog"]
+        },
+        "stream"
+    ]
 });
+
 
 // ✅ Catalog handler
 builder.defineCatalogHandler(() => {

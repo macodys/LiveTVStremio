@@ -1,8 +1,8 @@
-import sdk from 'stremio-addon-sdk';
+import pkg from 'stremio-addon-sdk';
 import express from 'express';
 import request from 'request';
 
-const { addonBuilder } = sdk;
+const { addonBuilder } = pkg;
 
 // Env variables for deployment
 const PROXY_PORT = process.env.PORT || 3000; // Railway uses dynamic port

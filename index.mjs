@@ -13,9 +13,10 @@ const USER_AGENT_HEADER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
 
 const app = express();
 
-// Proxy playlist
+// ✅ Proxy playlist
 app.get('/proxy/playlist.m3u8', async (req, res) => {
     try {
+        console.log('➡️  Proxying playlist request');
         const response = await fetch(STREAM_URL, {
             headers: {
                 'Referer': REFERER_HEADER,
@@ -24,15 +25,16 @@ app.get('/proxy/playlist.m3u8', async (req, res) => {
         });
         response.body.pipe(res);
     } catch (err) {
-        console.error('Error fetching playlist:', err);
+        console.error('❌ Error proxying playlist:', err);
         res.status(500).send('Error fetching playlist');
     }
 });
 
-// Proxy segments
+// ✅ Proxy segments
 app.get('/proxy/:segment', async (req, res) => {
     try {
         const segmentUrl = STREAM_URL.replace('JJJJ.m3u8', req.params.segment);
+        console.log(`➡️  Proxying segment request: ${segmentUrl}`);
         const response = await fetch(segmentUrl, {
             headers: {
                 'Referer': REFERER_HEADER,
@@ -41,12 +43,12 @@ app.get('/proxy/:segment', async (req, res) => {
         });
         response.body.pipe(res);
     } catch (err) {
-        console.error('Error fetching segment:', err);
+        console.error('❌ Error proxying segment:', err);
         res.status(500).send('Error fetching segment');
     }
 });
 
-// Stremio addon builder
+// ✅ Build Stremio addon
 const builder = new addonBuilder({
     id: "org.fawanews.live",
     version: "1.0.0",
@@ -62,8 +64,9 @@ const builder = new addonBuilder({
     resources: ["catalog", "stream"]
 });
 
-// Catalog handler
+// ✅ Catalog handler
 builder.defineCatalogHandler(() => {
+    console.log('📦 Catalog requested');
     return Promise.resolve({
         metas: [{
             id: "fawa_stream",
@@ -76,8 +79,9 @@ builder.defineCatalogHandler(() => {
     });
 });
 
-// Stream handler
+// ✅ Stream handler
 builder.defineStreamHandler(({ id }) => {
+    console.log(`🎥 Stream requested for: ${id}`);
     if (id === "fawa_stream") {
         const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
         return Promise.resolve({
@@ -90,32 +94,35 @@ builder.defineStreamHandler(({ id }) => {
     return Promise.resolve({ streams: [] });
 });
 
-// Serve manifest.json
+// ✅ Serve manifest.json
 app.get('/manifest.json', (req, res) => {
-    try {
-        const manifest = builder.manifest; // ✅ CORRECT
-        res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify(manifest));
-    } catch (err) {
-        console.error('Error serving manifest.json:', err);
-        res.status(500).send(err.toString());
-    }
+    console.log('📜 Manifest requested');
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(builder.manifest));
 });
 
-// Serve resources
-app.get('/:resource/:type/:id/:extra?.json', (req, res) => {
+// ✅ Serve catalog & stream routes
+app.get('/:resource/:type/:id.json', (req, res) => {
     const { resource, type, id } = req.params;
-    const extra = req.params.extra ? JSON.parse(req.params.extra) : {};
-    builder.getInterface().get(resource, type, id, extra).then(response => {
-        res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify(response));
-    }).catch(err => {
-        console.error('Error serving resource:', err);
-        res.status(500).send(err.toString());
-    });
+    console.log(`📡 Resource requested: ${resource}/${type}/${id}`);
+
+    builder.getInterface().get(resource, type, id, {})
+        .then(response => {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(response));
+        })
+        .catch(err => {
+            console.error(`❌ Error handling ${resource}/${type}/${id}:`, err);
+            res.status(500).send(err.toString());
+        });
 });
 
-// Start server
+// ✅ Start server
 app.listen(PORT, () => {
     console.log(`✅ Server running at http://localhost:${PORT}`);
+    if (process.env.BASE_URL) {
+        console.log(`🌍 Public URL: ${process.env.BASE_URL}/manifest.json`);
+    } else {
+        console.log('⚠️  BASE_URL not set. Set this in Railway variables for production!');
+    }
 });

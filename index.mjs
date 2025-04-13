@@ -63,8 +63,7 @@ const builder = new addonBuilder({
     }],
     resources: [
         {
-            name: "FAWA Live TV",
-            id: "catalog", // ✅ THIS IS THE FIX
+            id: "catalog", // ✅ correct resource ID
             types: ["tv"],
             idPrefixes: ["fawa_live_catalog"]
         },

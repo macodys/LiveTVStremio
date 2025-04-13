@@ -108,11 +108,12 @@ app.get('/manifest.json', (req, res) => {
 });
 
 // ✅ Serve catalog & stream routes
-app.get('/:resource/:type/:id.json', (req, res) => {
+app.get('/:resource/:type/:id/:extra?.json', (req, res) => {
     const { resource, type, id } = req.params;
-    console.log(`📡 Resource requested: ${resource}/${type}/${id}`);
+    const extra = req.params.extra ? JSON.parse(req.params.extra) : {};
+    console.log(`📡 Resource requested: ${resource} / ${type} / ${id} / extra:`, extra);
 
-    builder.getInterface().get(resource, type, id, {})
+    builder.getInterface().get(resource, type, id, extra)
         .then(response => {
             res.setHeader('Content-Type', 'application/json');
             res.send(JSON.stringify(response));
@@ -122,6 +123,7 @@ app.get('/:resource/:type/:id.json', (req, res) => {
             res.status(500).send(err.toString());
         });
 });
+
 
 // ✅ Start server
 app.listen(PORT, () => {

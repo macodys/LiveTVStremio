@@ -63,13 +63,14 @@ const builder = new addonBuilder({
     }],
     resources: [
         {
-            id: "catalog", // ✅ correct resource ID
+            resource: "catalog", // ✅ Corrected field
             types: ["tv"],
             idPrefixes: ["fawa_live_catalog"]
         },
         "stream"
     ]
 });
+
 
 // ✅ Catalog handler
 builder.defineCatalogHandler(() => {

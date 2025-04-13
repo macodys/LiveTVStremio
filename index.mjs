@@ -1,8 +1,11 @@
 import fetch from 'node-fetch';
 import express from 'express';
-import sdk from 'stremio-addon-sdk';
-
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const sdk = require('stremio-addon-sdk');
 const { addonBuilder } = sdk;
+
+
 
 const PROXY_PORT = process.env.PORT || 3000;
 const STREAM_URL = 'https://peugeot.yuyuim.shop/hls/JJJJ.m3u8';

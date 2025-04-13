@@ -13,10 +13,10 @@ const USER_AGENT_HEADER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
 
 const app = express();
 
-// ✅ Proxy playlist
+// Proxy playlist
 app.get('/proxy/playlist.m3u8', async (req, res) => {
     try {
-        console.log('➡️  Proxying playlist request');
+        console.log('➡️ Proxying playlist request');
         const response = await fetch(STREAM_URL, {
             headers: {
                 'Referer': REFERER_HEADER,
@@ -30,11 +30,11 @@ app.get('/proxy/playlist.m3u8', async (req, res) => {
     }
 });
 
-// ✅ Proxy segments
+// Proxy segments
 app.get('/proxy/:segment', async (req, res) => {
     try {
         const segmentUrl = STREAM_URL.replace('JJJJ.m3u8', req.params.segment);
-        console.log(`➡️  Proxying segment request: ${segmentUrl}`);
+        console.log(`➡️ Proxying segment request: ${segmentUrl}`);
         const response = await fetch(segmentUrl, {
             headers: {
                 'Referer': REFERER_HEADER,
@@ -48,51 +48,47 @@ app.get('/proxy/:segment', async (req, res) => {
     }
 });
 
-// ✅ Build Stremio addon
+// Stremio addon builder
 const builder = new addonBuilder({
     id: "org.fawanews.live",
     version: "1.0.0",
     name: "FAWA Live Stream",
     description: "Live stream from fawanews.com with proxy",
-    types: ["tv"], // ✅ global types declaration
+    types: ["channel"],
     catalogs: [{
-        type: "tv",
+        type: "channel", // ✅ Make sure catalog type is "channel"
         id: "fawa_live_catalog",
         name: "FAWA Live TV",
         extra: []
     }],
     resources: [
         {
-            name: "catalog", // ✅ CORRECT for GitHub version
-            types: ["tv"],
+            name: "catalog", // ✅ name field required by SDK from GitHub
+            types: ["channel"],
             idPrefixes: ["fawa_live_catalog"]
         },
         {
-            name: "stream", // ✅ Stream resource
-            types: ["tv"],
+            name: "stream",
+            types: ["channel"],
             idPrefixes: ["fawa_stream"]
         }
     ]
 });
 
-
-
-// ✅ Catalog handler
+// Catalog handler
 builder.defineCatalogHandler(() => {
     console.log('📦 Catalog requested');
     return Promise.resolve({
         metas: [{
             id: "fawa_stream",
-            type: "channel", // ✅ Change from "tv" to "channel"
+            type: "channel", // ✅ Must match catalog type
             name: "Newcastle vs Manchester United",
             description: "Live match stream from fawanews.com"
         }]
     });
 });
 
-
-
-// ✅ Stream handler
+// Stream handler
 builder.defineStreamHandler(({ id }) => {
     console.log(`🎥 Stream requested for: ${id}`);
     if (id === "fawa_stream") {
@@ -107,11 +103,11 @@ builder.defineStreamHandler(({ id }) => {
     return Promise.resolve({ streams: [] });
 });
 
-// ✅ Serve manifest.json
+// Serve manifest.json
 app.get('/manifest.json', (req, res) => {
     try {
         console.log('📜 Manifest requested');
-        const manifest = builder.getInterface().manifest; // ✅ THIS IS CORRECT
+        const manifest = builder.getInterface().manifest;
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(manifest));
     } catch (err) {
@@ -120,11 +116,11 @@ app.get('/manifest.json', (req, res) => {
     }
 });
 
-// ✅ Serve catalog & stream routes
+// Serve resource routes
 app.get('/:resource/:type/:id/:extra?.json', (req, res) => {
     const { resource, type, id } = req.params;
     const extra = req.params.extra ? JSON.parse(req.params.extra) : {};
-    console.log(`📡 Resource requested: ${resource} / ${type} / ${id} / extra:`, extra);
+    console.log(`📡 Resource requested: ${resource}/${type}/${id}`);
 
     builder.getInterface().get(resource, type, id, extra)
         .then(response => {
@@ -137,13 +133,12 @@ app.get('/:resource/:type/:id/:extra?.json', (req, res) => {
         });
 });
 
-
-// ✅ Start server
+// Start server
 app.listen(PORT, () => {
     console.log(`✅ Server running at http://localhost:${PORT}`);
     if (process.env.BASE_URL) {
         console.log(`🌍 Public URL: ${process.env.BASE_URL}/manifest.json`);
     } else {
-        console.log('⚠️  BASE_URL not set. Set this in Railway variables for production!');
+        console.log('⚠️ BASE_URL not set. Set this in Railway variables for production!');
     }
 });

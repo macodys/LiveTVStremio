@@ -83,12 +83,13 @@ builder.defineCatalogHandler(() => {
     return Promise.resolve({
         metas: [{
             id: "fawa_stream",
-            type: "tv",
+            type: "channel", // ✅ Change from "tv" to "channel"
             name: "Newcastle vs Manchester United",
             description: "Live match stream from fawanews.com"
         }]
     });
 });
+
 
 
 // ✅ Stream handler

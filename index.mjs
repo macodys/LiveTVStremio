@@ -54,7 +54,7 @@ const builder = new addonBuilder({
     version: "1.0.0",
     name: "FAWA Live Stream",
     description: "Live stream from fawanews.com with proxy",
-    types: ["tv"],
+    types: ["tv"], // ✅ global types declaration
     catalogs: [{
         type: "tv",
         id: "fawa_live_catalog",
@@ -63,13 +63,18 @@ const builder = new addonBuilder({
     }],
     resources: [
         {
-            resource: "catalog", // ✅ Corrected field
+            name: "catalog", // ✅ CORRECT for GitHub version
             types: ["tv"],
             idPrefixes: ["fawa_live_catalog"]
         },
-        "stream"
+        {
+            name: "stream", // ✅ Stream resource
+            types: ["tv"],
+            idPrefixes: ["fawa_stream"]
+        }
     ]
 });
+
 
 
 // ✅ Catalog handler

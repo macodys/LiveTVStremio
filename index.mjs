@@ -54,26 +54,27 @@ const builder = new addonBuilder({
     version: "1.0.0",
     name: "FAWA Live Stream",
     description: "Live stream from fawanews.com with proxy",
-    types: ["channel"],
+    types: ["movie", "channel"], // ✅ add "movie"
     catalogs: [{
-        type: "channel", // ✅ Make sure catalog type is "channel"
+        type: "movie", // ✅ change to "movie"
         id: "fawa_live_catalog",
         name: "FAWA Live TV",
-        extra: []
+        extra: [{ name: "search", isRequired: false }]
     }],
     resources: [
         {
-            name: "catalog", // ✅ name field required by SDK from GitHub
-            types: ["channel"],
+            name: "catalog",
+            types: ["movie"],
             idPrefixes: ["fawa_live_catalog"]
         },
         {
             name: "stream",
-            types: ["channel"],
+            types: ["movie"],
             idPrefixes: ["fawa_stream"]
         }
     ]
 });
+
 
 // Catalog handler
 builder.defineCatalogHandler(() => {
@@ -81,7 +82,7 @@ builder.defineCatalogHandler(() => {
     return Promise.resolve({
         metas: [{
             id: "fawa_stream",
-            type: "channel", // ✅ Must match catalog type
+            type: "movie", // ✅ switch to "movie"
             name: "Newcastle vs Manchester United",
             description: "Live match stream from fawanews.com"
         }]

@@ -72,12 +72,11 @@ builder.defineCatalogHandler(() => {
             id: "fawa_stream",
             type: "tv",
             name: "Newcastle vs Manchester United",
-            poster: "https://upload.wikimedia.org/wikipedia/en/7/7a/Newcastle_United_Logo.svg",
-            background: "https://upload.wikimedia.org/wikipedia/commons/6/66/Old_Trafford_inside_20060726_1.jpg",
             description: "Live match stream from fawanews.com"
         }]
     });
 });
+
 
 // ✅ Stream handler
 builder.defineStreamHandler(({ id }) => {

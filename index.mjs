@@ -102,7 +102,7 @@ builder.defineStreamHandler(({ id }) => {
 app.get('/manifest.json', (req, res) => {
     try {
         console.log('📜 Manifest requested');
-        const manifest = builder.getInterface().getManifest();
+        const manifest = builder.manifest; // ✅ FIXED
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(manifest));
     } catch (err) {
@@ -110,6 +110,7 @@ app.get('/manifest.json', (req, res) => {
         res.status(500).send(err.toString());
     }
 });
+
 
 // Serve Stremio resources (catalog, stream)
 app.get('/:resource/:type/:id/:extra?.json', (req, res) => {

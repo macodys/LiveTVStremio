@@ -1,41 +1,47 @@
-import pkg from 'stremio-addon-sdk';
+import fetch from 'node-fetch';
 import express from 'express';
-import request from 'request';
+import sdk from 'stremio-addon-sdk';
 
-const { addonBuilder } = pkg;
+const { addonBuilder } = sdk;
 
-// Env variables for deployment
-const PROXY_PORT = process.env.PORT || 3000; // Railway uses dynamic port
+const PROXY_PORT = process.env.PORT || 3000;
 const STREAM_URL = 'https://peugeot.yuyuim.shop/hls/JJJJ.m3u8';
 const REFERER_HEADER = 'http://www.fawanews.com/';
 const USER_AGENT_HEADER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
 
-// Init Express app
 const app = express();
 
-// Proxy .m3u8 playlist
-app.get('/proxy/playlist.m3u8', (req, res) => {
-    request.get({
-        url: STREAM_URL,
-        headers: {
-            'Referer': REFERER_HEADER,
-            'User-Agent': USER_AGENT_HEADER
-        }
-    }).pipe(res);
+// Proxy for .m3u8 playlist
+app.get('/proxy/playlist.m3u8', async (req, res) => {
+    try {
+        const response = await fetch(STREAM_URL, {
+            headers: {
+                'Referer': REFERER_HEADER,
+                'User-Agent': USER_AGENT_HEADER
+            }
+        });
+        response.body.pipe(res);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error fetching playlist');
+    }
 });
 
-// Proxy .ts segments
-app.get('/proxy/:segment', (req, res) => {
-    const segment = req.params.segment;
-    const segmentUrl = STREAM_URL.replace('JJJJ.m3u8', segment);
-
-    request.get({
-        url: segmentUrl,
-        headers: {
-            'Referer': REFERER_HEADER,
-            'User-Agent': USER_AGENT_HEADER
-        }
-    }).pipe(res);
+// Proxy for .ts segments
+app.get('/proxy/:segment', async (req, res) => {
+    try {
+        const segmentUrl = STREAM_URL.replace('JJJJ.m3u8', req.params.segment);
+        const response = await fetch(segmentUrl, {
+            headers: {
+                'Referer': REFERER_HEADER,
+                'User-Agent': USER_AGENT_HEADER
+            }
+        });
+        response.body.pipe(res);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error fetching segment');
+    }
 });
 
 // Set up Stremio Addon

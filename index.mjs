@@ -1,11 +1,10 @@
 import fetch from 'node-fetch';
 import express from 'express';
 import { createRequire } from 'module';
+
 const require = createRequire(import.meta.url);
 const sdk = require('stremio-addon-sdk');
 const { addonBuilder } = sdk;
-
-
 
 const PROXY_PORT = process.env.PORT || 3000;
 const STREAM_URL = 'https://peugeot.yuyuim.shop/hls/JJJJ.m3u8';
@@ -14,7 +13,7 @@ const USER_AGENT_HEADER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
 
 const app = express();
 
-// Proxy for .m3u8 playlist
+// ✅ Proxy .m3u8 playlist
 app.get('/proxy/playlist.m3u8', async (req, res) => {
     try {
         const response = await fetch(STREAM_URL, {
@@ -25,12 +24,12 @@ app.get('/proxy/playlist.m3u8', async (req, res) => {
         });
         response.body.pipe(res);
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching playlist:', err);
         res.status(500).send('Error fetching playlist');
     }
 });
 
-// Proxy for .ts segments
+// ✅ Proxy .ts segments
 app.get('/proxy/:segment', async (req, res) => {
     try {
         const segmentUrl = STREAM_URL.replace('JJJJ.m3u8', req.params.segment);
@@ -42,12 +41,12 @@ app.get('/proxy/:segment', async (req, res) => {
         });
         response.body.pipe(res);
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching segment:', err);
         res.status(500).send('Error fetching segment');
     }
 });
 
-// Set up Stremio Addon
+// ✅ Initialize Stremio Addon
 const builder = new addonBuilder({
     id: "org.fawanews.live",
     version: "1.0.0",
@@ -63,7 +62,7 @@ const builder = new addonBuilder({
     resources: ["catalog", "stream"]
 });
 
-// Catalog Handler
+// ✅ Catalog Handler
 builder.defineCatalogHandler(() => {
     return Promise.resolve({
         metas: [{
@@ -77,7 +76,7 @@ builder.defineCatalogHandler(() => {
     });
 });
 
-// Stream Handler (points to your public proxy)
+// ✅ Stream Handler
 builder.defineStreamHandler(({ id }) => {
     if (id === "fawa_stream") {
         const baseUrl = process.env.BASE_URL || `http://localhost:${PROXY_PORT}`;
@@ -91,13 +90,13 @@ builder.defineStreamHandler(({ id }) => {
     return Promise.resolve({ streams: [] });
 });
 
-// Express route for manifest.json (Stremio expects this!)
+// ✅ Serve manifest.json properly!
 app.get('/manifest.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(builder.getInterface().getManifest()));
+    res.send(JSON.stringify(builder.getManifest()));
 });
 
-// Express route for stremio resource handlers
+// ✅ Serve resource routes (stream, catalog, etc.)
 app.get('/:resource/:type/:id/:extra?.json', (req, res) => {
     const { resource, type, id } = req.params;
     const extra = req.params.extra ? JSON.parse(req.params.extra) : {};
@@ -105,11 +104,12 @@ app.get('/:resource/:type/:id/:extra?.json', (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(response));
     }).catch(err => {
+        console.error('Error handling resource:', err);
         res.status(500).send(err.toString());
     });
 });
 
-// Start server
+// ✅ Start server
 app.listen(PROXY_PORT, () => {
-    console.log(`✅ Server running on port ${PROXY_PORT}`);
+    console.log(`✅ Server running at http://localhost:${PROXY_PORT}`);
 });
